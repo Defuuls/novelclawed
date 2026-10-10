@@ -2,8 +2,8 @@
 任务理解模块 (Analyzer) - bilingual zh/en
 """
 from typing import Dict, List
-from utils.llm_client import LLMClient
-from config import Config
+from novelclaw.utils.llm_client import LLMClient
+from novelclaw.config import Config
 import json
 import re
 

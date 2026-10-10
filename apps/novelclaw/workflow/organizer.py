@@ -2,8 +2,8 @@
 执行计划调度模块 (Adaptive Organizer)
 """
 from typing import Dict, List, Optional
-from utils.llm_client import LLMClient
-from config import Config
+from novelclaw.utils.llm_client import LLMClient
+from novelclaw.config import Config
 
 
 class AdaptiveOrganizer:

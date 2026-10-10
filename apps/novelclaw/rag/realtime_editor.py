@@ -3,10 +3,10 @@
 """
 from typing import Dict, List, Optional, Tuple
 import json
-from utils.llm_client import LLMClient
-from rag.memory_system import MemorySystem
-from rag.turning_point_tracker import TurningPointTracker
-from config import Config
+from novelclaw.utils.llm_client import LLMClient
+from novelclaw.rag.memory_system import MemorySystem
+from novelclaw.rag.turning_point_tracker import TurningPointTracker
+from novelclaw.config import Config
 
 
 class RealtimeEditor:

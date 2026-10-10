@@ -6,9 +6,9 @@ from datetime import datetime
 import json
 import os
 import re
-from config import Config
-from utils.llm_client import LLMClient
-from rag.memory_system import MemorySystem
+from novelclaw.config import Config
+from novelclaw.utils.llm_client import LLMClient
+from novelclaw.rag.memory_system import MemorySystem
 
 
 class TurningPointTracker:

@@ -11,6 +11,8 @@ True OpenClaw pattern:
 """
 from __future__ import annotations
 
+from novelclaw.utils.openai_compat import check_cancelled as _check_cancelled
+
 import json
 import os
 import re
@@ -18,7 +20,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from capability_registry import enabled_claw_actions
+from novelclaw.capability_registry import enabled_claw_actions
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +71,7 @@ def _ask_user_web(question: str, timeout: int = 90) -> str:
                 return answer
             except Exception:
                 pass
+        _check_cancelled()  # cooperative cancel for in-process (Android) workers
         time.sleep(0.8)
     # Timeout — clean up and continue
     try:
@@ -372,7 +375,7 @@ class OpenClawManager:
         self.user_interaction_hook: Optional[Callable[[str], str]] = user_interaction_hook
 
         # import workspace agent lazily to avoid circular imports
-        from workflow.workspace_agent import WorkspaceToolAgent
+        from novelclaw.workflow.workspace_agent import WorkspaceToolAgent
         self.workspace_agent = WorkspaceToolAgent(executor)
 
     # ------------------------------------------------------------------

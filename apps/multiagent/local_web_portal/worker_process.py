@@ -22,8 +22,8 @@ def run_worker(idea: str, output_json: str) -> int:
     }
 
     try:
-        from config import Config
-        from workflow.executor import CompositiveExecutor
+        from multiagent.config import Config
+        from multiagent.workflow.executor import CompositiveExecutor
 
         config = Config(require_api_key=True)
         # Keep run id stable between web job and worker payload, even on failure.

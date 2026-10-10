@@ -4,30 +4,15 @@
 import os
 from typing import List, Dict, Optional
 import uuid
-try:
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-except ImportError:
-    # 如果 langchain 不可用，使用简单的文本分割
-    class RecursiveCharacterTextSplitter:
-        def __init__(self, chunk_size=500, chunk_overlap=100, length_function=len):
-            self.chunk_size = chunk_size
-            self.chunk_overlap = chunk_overlap
-            self.length_function = length_function
-        
-        def split_text(self, text: str):
-            chunks = []
-            start = 0
-            while start < len(text):
-                end = start + self.chunk_size
-                chunks.append(text[start:end])
-                start = end - self.chunk_overlap
-            return chunks
+from multiagent.rag.text_splitter import RecursiveCharacterTextSplitter
 # 避免在某些环境中 transformers 自动导入 TensorFlow 引发冲突
 os.environ.setdefault("TRANSFORMERS_NO_TF", "1")
 os.environ.setdefault("TRANSFORMERS_NO_FLAX", "1")
 os.environ.setdefault("USE_TF", "0")
 
 import numpy as np
+
+from multiagent.rag.embeddings import RemoteEmbedder, keyword_embeddings
 
 
 class DocumentProcessor:
@@ -40,18 +25,11 @@ class DocumentProcessor:
             chunk_overlap=config.chunk_overlap,
             length_function=len,
         )
-        embed_name = (config.embedding_model or "").strip().lower()
-        if embed_name in {"none", "noop", "disable", "disabled"}:
-            self.embedding_model = None
-        else:
-            try:
-                from sentence_transformers import SentenceTransformer
-            except ImportError as exc:
-                raise ImportError(
-                    "sentence-transformers is required only when EMBEDDING_MODEL is enabled."
-                ) from exc
-            self.embedding_model = SentenceTransformer(config.embedding_model)
-    
+        # sentence-transformers/torch are not available on Android. Embeddings come from
+        # the configured OpenAI-compatible /embeddings endpoint when EMBEDDING_API_MODEL
+        # is set; otherwise a keyword (hashed bag-of-words) fallback is used.
+        self.embedding_model = RemoteEmbedder.from_config(config)
+
     def split_documents(self, text: str) -> List[str]:
         """
         将文档分割成块
@@ -76,15 +54,14 @@ class DocumentProcessor:
             嵌入向量数组
         """
         if self.embedding_model is None:
-            # return a small dummy vector to avoid heavy model load when embedding is disabled
-            return np.zeros((len(texts), 4), dtype=float)
-        embeddings = self.embedding_model.encode(
-            texts,
-            show_progress_bar=False,
-            convert_to_numpy=True
-        )
-        return embeddings
-    
+            # keyword fallback: hashed bag-of-words vectors (no model required)
+            return keyword_embeddings(texts)
+        try:
+            return self.embedding_model.encode(texts)
+        except Exception as exc:
+            print(f"[Embeddings] remote embedding failed, using keyword fallback: {exc}")
+            return keyword_embeddings(texts)
+
     def process_document(self, text: str, doc_id: Optional[str] = None) -> List[Dict]:
         """
         处理文档：分块并生成嵌入

@@ -21,12 +21,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
-from config import Config
-from rag.memory_system import MemorySystem
-from utils.language_detector import detect_language
-from utils.llm_client import LLMClient
+from novelclaw.config import Config
+from novelclaw.rag.memory_system import MemorySystem
+from novelclaw.utils.language_detector import detect_language
+from novelclaw.utils.llm_client import LLMClient
 
-from agents.idea_copilot_agent import (
+from novelclaw.agents.idea_copilot_agent import (
     IdeaCopilotAgent,
     append_assistant_turn,
     append_user_reply,
@@ -50,7 +50,7 @@ from .provider_registry import (
 )
 from .security import SESSION_SECRET, decrypt_api_key, encrypt_api_key, hash_password, verify_password
 from .settings import BASE_DIR, RUNS_DIR, settings
-from capability_registry import CAPABILITY_REGISTRY, capability_map, default_enabled_capability_slugs, normalize_capability_slugs
+from novelclaw.capability_registry import CAPABILITY_REGISTRY, capability_map, default_enabled_capability_slugs, normalize_capability_slugs
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
@@ -533,6 +533,9 @@ def _shared_portal_url(request: Request, path: str) -> str:
     normalized = normalized if normalized.startswith("/") else f"/{normalized}"
     if settings.shared_portal_url:
         return f"{settings.shared_portal_url}{normalized}"
+    if settings.shared_portal_port == "same":
+        # single-process mode (Android): the portal is served from the same origin
+        return normalized
     return urlunsplit((request.url.scheme, f"{_external_host(request)}:{settings.shared_portal_port}", normalized, "", ""))
 
 
@@ -4224,7 +4227,7 @@ def save_api_key(
 
     if provider not in provider_specs:
         return _redirect_with_notice("/console/models", error=_ui_text(language, "不支持的提供商", "Unsupported provider"))
-    if len(api_key) < 12:
+    if len(api_key) < (1 if os.getenv("APP_SINGLE_PROCESS") == "1" else 12):
         return _redirect_with_notice("/console/models", error=_ui_text(language, "API Key 看起来太短了", "API key looks too short"))
 
     cred = db.execute(

@@ -87,6 +87,7 @@
       </div>
 
       <div class="auth-link-row auth-link-row-split">
+        {% if single_process %}<a class="auth-top-link" href="/settings">{% if zh %}模型设置{% else %}Model settings{% endif %}</a>{% endif %}
         <span class="auth-top-link">{% if zh %}预览会话：{% else %}Preview session:{% endif %} {{ preview_session }}</span>
         <form method="post" action="/logout">
           <button type="submit" class="auth-inline-link">{% if zh %}重置会话{% else %}Reset session{% endif %}</button>

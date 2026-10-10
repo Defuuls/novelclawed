@@ -10,9 +10,9 @@
 }
 """
 from typing import Dict, Optional
-from agents.base_agent import BaseAgent
-from utils.llm_client import LLMClient
-from config import Config
+from novelclaw.agents.base_agent import BaseAgent
+from novelclaw.utils.llm_client import LLMClient
+from novelclaw.config import Config
 
 
 class JudgeAgent(BaseAgent):

@@ -3,10 +3,10 @@
 """
 from typing import Dict, List, Optional, Tuple
 import json
-from utils.llm_client import LLMClient
-from rag.memory_system import MemorySystem
-from rag.turning_point_tracker import TurningPointTracker
-from config import Config
+from multiagent.utils.llm_client import LLMClient
+from multiagent.rag.memory_system import MemorySystem
+from multiagent.rag.turning_point_tracker import TurningPointTracker
+from multiagent.config import Config
 
 
 class RealtimeEditor:

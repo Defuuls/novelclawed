@@ -2,8 +2,8 @@
 任务理解模块 (Analyzer) - bilingual zh/en
 """
 from typing import Dict, List
-from utils.llm_client import LLMClient
-from config import Config
+from multiagent.utils.llm_client import LLMClient
+from multiagent.config import Config
 import json
 import re
 

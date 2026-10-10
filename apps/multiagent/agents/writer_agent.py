@@ -3,12 +3,12 @@ Writer agent for long-form story chapter generation.
 """
 from typing import Dict, List, Optional
 
-from agents.base_agent import BaseAgent
-from config import Config
-from rag.memory_system import MemorySystem
-from rag.retriever import Retriever
-from rag.static_knowledge_base import StaticKnowledgeBase
-from utils.llm_client import LLMClient
+from multiagent.agents.base_agent import BaseAgent
+from multiagent.config import Config
+from multiagent.rag.memory_system import MemorySystem
+from multiagent.rag.retriever import Retriever
+from multiagent.rag.static_knowledge_base import StaticKnowledgeBase
+from multiagent.utils.llm_client import LLMClient
 
 
 class WriterAgent(BaseAgent):

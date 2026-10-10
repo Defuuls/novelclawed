@@ -9,9 +9,9 @@ import os
 import re
 import shutil
 
-from rag.vector_store import VectorStore
-from rag.document_processor import DocumentProcessor
-from config import Config
+from multiagent.rag.vector_store import VectorStore
+from multiagent.rag.document_processor import DocumentProcessor
+from multiagent.config import Config
 
 
 class MemorySystem:

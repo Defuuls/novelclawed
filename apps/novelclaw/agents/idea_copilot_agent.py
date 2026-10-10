@@ -4,9 +4,9 @@ import json
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from config import Config
-from utils.language_detector import detect_language
-from utils.llm_client import LLMClient
+from novelclaw.config import Config
+from novelclaw.utils.language_detector import detect_language
+from novelclaw.utils.llm_client import LLMClient
 
 
 @dataclass(frozen=True)

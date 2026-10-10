@@ -18,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
-from agents.idea_copilot_agent import (
+from multiagent.agents.idea_copilot_agent import (
     IdeaCopilotAgent,
     append_assistant_turn,
     append_user_reply,
@@ -181,6 +181,9 @@ def _shared_portal_url(request: Request, path: str) -> str:
     normalized = normalized if normalized.startswith("/") else f"/{normalized}"
     if settings.shared_portal_url:
         return f"{settings.shared_portal_url}{normalized}"
+    if settings.shared_portal_port == "same":
+        # single-process mode (Android): the portal is served from the same origin
+        return normalized
     return urlunsplit((request.url.scheme, f"{_external_host(request)}:{settings.shared_portal_port}", normalized, "", ""))
 
 
@@ -438,6 +441,9 @@ def _provider_api_key(db: Session, user_id: int, provider: str) -> str:
         )
     ).scalar_one_or_none()
     if not row:
+        env_key = str(os.getenv(f"{(provider or '').strip().upper().replace('-', '_')}_API_KEY", "") or "").strip()
+        if env_key:
+            return env_key
         raise ValueError("provider.api_key_missing")
     try:
         return decrypt_api_key(row.encrypted_key)
@@ -1230,7 +1236,7 @@ def save_api_key(
 
     if provider not in provider_specs:
         return _redirect_back_or("/providers", next, error="notice.provider.unsupported")
-    if len(api_key) < 12:
+    if len(api_key) < (1 if os.getenv("APP_SINGLE_PROCESS") == "1" else 12):
         return _redirect_back_or("/providers", next, error="notice.provider.key_short")
 
     cred = db.execute(

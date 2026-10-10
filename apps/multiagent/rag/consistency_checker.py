@@ -2,9 +2,9 @@
 一致性检查模块：检测和验证生成内容的一致性（中英双语）
 """
 from typing import Dict, List, Optional, Tuple
-from utils.llm_client import LLMClient
-from rag.memory_system import MemorySystem
-from config import Config
+from multiagent.utils.llm_client import LLMClient
+from multiagent.rag.memory_system import MemorySystem
+from multiagent.config import Config
 import re
 import json
 

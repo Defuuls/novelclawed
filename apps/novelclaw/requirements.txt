@@ -1,11 +1,8 @@
-openai>=1.0.0
-langchain>=0.1.0
-langchain-community>=0.0.20
-chromadb>=0.4.0
-sentence-transformers>=2.2.0
+# Engine dependencies. The LLM client is pure Python (utils/openai_compat.py),
+# the vector store is SQLite + numpy (rag/vector_store.py) and the text splitter
+# is inlined (rag/text_splitter.py), so openai / chromadb / langchain /
+# sentence-transformers / tiktoken are no longer required.
 numpy>=1.24.0
-pydantic>=2.0.0
 python-dotenv>=1.0.0
-tiktoken>=0.5.0
-datasets>=2.14.0
-
+# Optional: only used by utils/dataset_loader.py for offline dataset imports.
+# datasets>=2.14.0

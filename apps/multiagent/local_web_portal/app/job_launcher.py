@@ -4,7 +4,10 @@ import argparse
 import os
 import subprocess
 import sys
+import threading
 from pathlib import Path
+
+from inprocess_worker import inprocess_enabled
 
 from .job_runner import run_generation_job
 from .settings import BASE_DIR, RUNS_DIR
@@ -17,12 +20,17 @@ def _launcher_log_path(job_id: int) -> Path:
 
 
 def start_generation_job_process(job_id: int) -> int:
+    if inprocess_enabled():
+        # Android/Chaquopy: no detached child processes; run the job in a thread.
+        worker = threading.Thread(target=run_generation_job, args=(job_id,), daemon=True, name=f"multiagent-job-{job_id}")
+        worker.start()
+        return 0
     log_path = _launcher_log_path(job_id)
     cmd = [
         sys.executable,
         "-u",
         "-m",
-        "local_web_portal.app.job_launcher",
+        "multiagent.local_web_portal.app.job_launcher",
         "--job-id",
         str(job_id),
     ]
@@ -32,7 +40,7 @@ def start_generation_job_process(job_id: int) -> int:
 
     with log_path.open("ab") as log_fp:
         kwargs = {
-            "cwd": str(BASE_DIR.parent),
+            "cwd": str(BASE_DIR.parent.parent),
             "env": env,
             "stdin": subprocess.DEVNULL,
             "stdout": log_fp,

@@ -4,6 +4,8 @@ import json
 import os
 import queue
 import subprocess
+
+from inprocess_worker import InProcessJob, inprocess_enabled
 import sys
 import threading
 import time
@@ -31,6 +33,16 @@ from .settings import BASE_DIR, RUNS_DIR, settings
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
+
+
+def _env_api_key_for_provider(provider: str) -> str:
+    """API key supplied via env (e.g. the on-device settings page sets CUSTOM_API_KEY)."""
+    slug = (provider or "").strip().lower()
+    for name in (f"{slug.upper().replace('-', '_')}_API_KEY",):
+        value = str(os.getenv(name, "") or "").strip()
+        if value and not value.lower().startswith(("your-", "change-")):
+            return value
+    return ""
 
 def _cancel_flag_path(run_id: str) -> Path:
     return RUNS_DIR / run_id / "cancel.flag"
@@ -244,7 +256,7 @@ def _run_worker_subprocess(
         sys.executable,
         "-u",
         "-m",
-        "local_web_portal.worker_process",
+        "multiagent.local_web_portal.worker_process",
         "--idea",
         idea,
         "--output-json",
@@ -255,23 +267,32 @@ def _run_worker_subprocess(
     env.update(_provider_env(provider, api_key, provider_specs=provider_specs))
     env["RUN_ID"] = run_id
 
-    process = subprocess.Popen(
-        cmd,
-        cwd=str(BASE_DIR.parent),
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        bufsize=1,
-    )
+    if inprocess_enabled():
+        # Android/Chaquopy: no child processes; run the worker in a thread.
+        from multiagent.local_web_portal.worker_process import run_worker as _run_worker
+
+        process = InProcessJob(lambda: _run_worker(idea=idea, output_json=str(worker_out)), env).start()
+    else:
+        process = subprocess.Popen(
+            cmd,
+            cwd=str(BASE_DIR.parent.parent),
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+        )
     started = time.monotonic()
     last_output_at = started
     last_heartbeat_at = started
-    line_queue: "queue.Queue[Optional[str]]" = queue.Queue()
-    reader = threading.Thread(target=_stdout_reader, args=(process.stdout, line_queue), daemon=True)
-    reader.start()
+    if isinstance(process, InProcessJob):
+        line_queue = process.lines
+    else:
+        line_queue: "queue.Queue[Optional[str]]" = queue.Queue()
+        reader = threading.Thread(target=_stdout_reader, args=(process.stdout, line_queue), daemon=True)
+        reader.start()
     stdout_closed = False
 
     with worker_log.open("a", encoding="utf-8", buffering=1) as log_fp:
@@ -368,7 +389,8 @@ def run_generation_job(job_id: int) -> None:
             ApiCredential.provider == job.provider,
         )
         credential = db.execute(cred_stmt).scalar_one_or_none()
-        if not credential:
+        env_api_key = "" if credential else _env_api_key_for_provider(job.provider)
+        if not credential and not env_api_key:
             raise RuntimeError("No API key saved for this provider.")
 
         run_id = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_u{job.user_id}_j{job.id}"
@@ -376,7 +398,7 @@ def run_generation_job(job_id: int) -> None:
         job.updated_at = _utcnow()
         db.commit()
 
-        raw_api_key = decrypt_api_key(credential.encrypted_key)
+        raw_api_key = decrypt_api_key(credential.encrypted_key) if credential else env_api_key
         provider_specs = merge_provider_specs(
             get_provider_specs(settings),
             _custom_provider_specs_for_user(db, job.user_id).values(),
