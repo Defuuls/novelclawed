@@ -78,8 +78,8 @@ def run_worker(idea: str, output_json: str) -> int:
     }
 
     try:
-        from config import Config
-        from workflow.executor import CompositiveExecutor
+        from novelclaw.config import Config
+        from novelclaw.workflow.executor import CompositiveExecutor
 
         config = Config(require_api_key=True)
         config.execution_mode = "claw"

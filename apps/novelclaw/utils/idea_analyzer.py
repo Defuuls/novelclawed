@@ -2,8 +2,8 @@
 Idea分析器：根据用户的idea自动推断风格、类型等（支持中英）
 """
 from typing import Dict, List, Optional
-from utils.llm_client import LLMClient
-from config import Config
+from novelclaw.utils.llm_client import LLMClient
+from novelclaw.config import Config
 import json
 import re
 

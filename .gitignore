@@ -11,3 +11,15 @@ apps/**/local_web_portal/data/*.key
 apps/**/local_web_portal/data/*.secret
 apps/**/local_web_portal/runs/**
 !apps/**/local_web_portal/runs/.keep
+
+# Android build
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.apk
+
+# Python bytecode
+__pycache__/
+*.py[cod]

@@ -5,8 +5,13 @@ from typing import List, Dict, Optional, Any
 import json
 import re
 import time
-from openai import OpenAI
-from config import Config
+from novelclaw.utils.openai_compat import (
+    OpenAICompatClient,
+    message_content,
+    message_tool_calls,
+    responses_output_text,
+)
+from novelclaw.config import Config
 
 
 class LLMClient:
@@ -16,7 +21,7 @@ class LLMClient:
         self.config = config
         timeout_seconds = getattr(config, "llm_timeout_seconds", 0)
         client_timeout = None if timeout_seconds <= 0 else timeout_seconds
-        self.client = OpenAI(
+        self.client = OpenAICompatClient(
             api_key=config.api_key,
             base_url=config.api_base_url,
             timeout=client_timeout,
@@ -73,22 +78,22 @@ class LLMClient:
             if getattr(self.config, "wire_api", "chat") == "responses":
                 # 将 messages 展开为文本输入，尽量保留角色信息
                 joined = "\n".join([f"{m.get('role','user').upper()}: {m.get('content','')}" for m in messages])
-                response = self.client.responses.create(
+                response = self.client.responses(
                     model=model or self.config.model_name,
                     input=joined,
                     max_output_tokens=max_t,
                     temperature=temperature if temperature is not None else self.config.temperature,
                     reasoning={"effort": getattr(self.config, "model_reasoning_effort", "high") if hasattr(self.config, "model_reasoning_effort") else "high"},
                 )
-                output = response.output_text
+                output = responses_output_text(response)
             else:
-                response = self.client.chat.completions.create(
+                response = self.client.chat_completions(
                     model=model or self.config.model_name,
                     messages=messages,
                     temperature=temperature if temperature is not None else self.config.temperature,
                     max_tokens=max_t
                 )
-                output = response.choices[0].message.content
+                output = message_content(response)
             if getattr(self.config, "llm_call_log", True):
                 cost = time.perf_counter() - started
                 print(f"[LLM] {self._text('完成', 'done')} model={model or self.config.model_name} elapsed={cost:.2f}s")
@@ -117,27 +122,27 @@ class LLMClient:
         if getattr(self.config, "llm_call_log", True):
             print(f"[Claw] tool-call provider={self.config.llm_provider} model={target_model} tools={[t['function']['name'] for t in tools]}")
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.chat_completions(
                 model=target_model,
                 messages=messages,
                 tools=tools,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            msg = response.choices[0].message
             tool_calls = []
-            if msg.tool_calls:
-                for tc in msg.tool_calls:
-                    try:
-                        args = json.loads(tc.function.arguments or "{}")
-                    except Exception:
-                        args = {}
-                    tool_calls.append({"id": tc.id, "name": tc.function.name, "args": args})
+            for tc in message_tool_calls(response):
+                fn = tc.get("function") or {}
+                raw_args = fn.get("arguments") or "{}"
+                try:
+                    args = raw_args if isinstance(raw_args, dict) else json.loads(raw_args)
+                except Exception:
+                    args = {}
+                tool_calls.append({"id": tc.get("id") or "", "name": fn.get("name") or "", "args": args})
             if getattr(self.config, "llm_call_log", True):
                 elapsed = time.perf_counter() - started
                 action = tool_calls[0]["name"] if tool_calls else "text-reply"
                 print(f"[Claw] done action={action} elapsed={elapsed:.2f}s")
-            return {"content": msg.content or "", "tool_calls": tool_calls}
+            return {"content": message_content(response), "tool_calls": tool_calls}
         except Exception as native_err:
             # 降级：文本模式下要求 LLM 输出 JSON 工具调用
             if getattr(self.config, "llm_call_log", True):

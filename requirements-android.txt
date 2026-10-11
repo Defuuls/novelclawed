@@ -1,0 +1,29 @@
+# Dependencies for the single-process Android build (Chaquopy, Python 3.11).
+# pydantic is pinned to v1 (pure Python; pydantic-core has no Android wheel).
+# FastAPI 0.116 still supports pydantic v1, so no app code changes were needed.
+# Everything here is pure Python or available as a prebuilt Chaquopy wheel
+# (numpy, cryptography, bcrypt, markupsafe). Not included on purpose:
+#   openai (needs pydantic v2 / pydantic-core: no Android wheel) -> utils/openai_compat.py
+#   uvicorn[standard] (uvloop/httptools/watchfiles)               -> plain uvicorn + h11
+#   chromadb (onnxruntime/hnswlib)                                -> rag/vector_store.py (SQLite + numpy)
+#   sentence-transformers / torch                                 -> remote /embeddings + keyword fallback
+#   langchain / langchain-community                               -> rag/text_splitter.py
+#   tiktoken, datasets                                            -> unused at runtime / optional
+fastapi==0.116.1
+pydantic==1.10.26
+starlette==0.47.3
+uvicorn==0.30.6
+h11==0.14.0
+anyio==4.9.0
+sniffio==1.3.1
+typing_extensions==4.12.2
+SQLAlchemy==2.0.43
+Jinja2==3.1.6
+MarkupSafe
+itsdangerous==2.2.0
+python-dotenv==1.1.1
+python-multipart==0.0.20
+passlib==1.7.4
+bcrypt
+cryptography
+numpy

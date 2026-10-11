@@ -4,8 +4,8 @@ import json
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from config import Config
-from utils.llm_client import LLMClient
+from multiagent.config import Config
+from multiagent.utils.llm_client import LLMClient
 
 
 @dataclass(frozen=True)

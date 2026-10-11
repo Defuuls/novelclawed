@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from urllib.parse import urlsplit, urlunsplit
 
 from fastapi import Depends, FastAPI, Form, Request, status
@@ -59,7 +60,11 @@ def _ui_language(request: Request) -> str:
 
 
 def _portal_context(request: Request, **extra):
-    ctx = {"request": request, "ui_language": _ui_language(request)}
+    ctx = {
+        "request": request,
+        "ui_language": _ui_language(request),
+        "single_process": os.getenv("APP_SINGLE_PROCESS") == "1",
+    }
     ctx.update(extra)
     return ctx
 

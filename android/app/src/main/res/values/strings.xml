@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">NovelClaw</string>
+    <string name="starting">Starting NovelClaw…</string>
+    <string name="notif_channel">NovelClaw server</string>
+    <string name="notif_text">Running the story engine on this device</string>
+</resources>

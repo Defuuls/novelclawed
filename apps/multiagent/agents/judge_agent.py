@@ -10,9 +10,9 @@
 }
 """
 from typing import Dict, Optional
-from agents.base_agent import BaseAgent
-from utils.llm_client import LLMClient
-from config import Config
+from multiagent.agents.base_agent import BaseAgent
+from multiagent.utils.llm_client import LLMClient
+from multiagent.config import Config
 
 
 class JudgeAgent(BaseAgent):

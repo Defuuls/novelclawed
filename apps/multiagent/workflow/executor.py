@@ -3,23 +3,23 @@
 """
 from typing import Dict, List, Optional, Tuple
 import math
-from config import Config
+from multiagent.config import Config
 import json
-from utils.llm_client import LLMClient
-from rag.retriever import Retriever
-from rag.memory_system import MemorySystem
-from rag.consistency_checker import ConsistencyChecker
-from rag.turning_point_tracker import TurningPointTracker
-from rag.realtime_editor import RealtimeEditor
-from workflow.analyzer import Analyzer
-from workflow.organizer import AdaptiveOrganizer
-from utils.idea_analyzer import IdeaAnalyzer
-from utils.language_detector import detect_language
-from agents.plot_agent import PlotAgent
-from agents.character_agent import CharacterAgent
-from agents.world_agent import WorldAgent
-from agents.retrieval_agent import RetrievalAgent
-from agents.writer_agent import WriterAgent
+from multiagent.utils.llm_client import LLMClient
+from multiagent.rag.retriever import Retriever
+from multiagent.rag.memory_system import MemorySystem
+from multiagent.rag.consistency_checker import ConsistencyChecker
+from multiagent.rag.turning_point_tracker import TurningPointTracker
+from multiagent.rag.realtime_editor import RealtimeEditor
+from multiagent.workflow.analyzer import Analyzer
+from multiagent.workflow.organizer import AdaptiveOrganizer
+from multiagent.utils.idea_analyzer import IdeaAnalyzer
+from multiagent.utils.language_detector import detect_language
+from multiagent.agents.plot_agent import PlotAgent
+from multiagent.agents.character_agent import CharacterAgent
+from multiagent.agents.world_agent import WorldAgent
+from multiagent.agents.retrieval_agent import RetrievalAgent
+from multiagent.agents.writer_agent import WriterAgent
 import re
 
 

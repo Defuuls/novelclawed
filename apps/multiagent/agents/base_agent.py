@@ -3,11 +3,11 @@ Agent 基类
 """
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
-from utils.llm_client import LLMClient
-from rag.retriever import Retriever
-from rag.memory_system import MemorySystem
-from rag.static_knowledge_base import StaticKnowledgeBase
-from config import Config
+from multiagent.utils.llm_client import LLMClient
+from multiagent.rag.retriever import Retriever
+from multiagent.rag.memory_system import MemorySystem
+from multiagent.rag.static_knowledge_base import StaticKnowledgeBase
+from multiagent.config import Config
 
 
 class BaseAgent(ABC):

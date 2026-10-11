@@ -5,9 +5,9 @@
 
 from typing import Dict, List, Optional
 
-from config import Config
-from rag.document_processor import DocumentProcessor
-from rag.vector_store import VectorStore
+from novelclaw.config import Config
+from novelclaw.rag.document_processor import DocumentProcessor
+from novelclaw.rag.vector_store import VectorStore
 
 
 class Retriever:

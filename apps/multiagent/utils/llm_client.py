@@ -3,8 +3,13 @@ LLM 客户端封装，支持 Codex/OpenAI/DeepSeek（默认指向 packycode Code
 """
 from typing import List, Dict, Optional
 import time
-from openai import OpenAI
-from config import Config
+from multiagent.utils.openai_compat import (
+    OpenAICompatClient,
+    message_content,
+    message_tool_calls,
+    responses_output_text,
+)
+from multiagent.config import Config
 
 
 class LLMClient:
@@ -14,7 +19,7 @@ class LLMClient:
         self.config = config
         timeout_seconds = getattr(config, "llm_timeout_seconds", 0)
         client_timeout = None if timeout_seconds <= 0 else timeout_seconds
-        self.client = OpenAI(
+        self.client = OpenAICompatClient(
             api_key=config.api_key,
             base_url=config.api_base_url,
             timeout=client_timeout,
@@ -65,22 +70,22 @@ class LLMClient:
             if getattr(self.config, "wire_api", "chat") == "responses":
                 # 将 messages 展开为文本输入，尽量保留角色信息
                 joined = "\n".join([f"{m.get('role','user').upper()}: {m.get('content','')}" for m in messages])
-                response = self.client.responses.create(
+                response = self.client.responses(
                     model=model or self.config.model_name,
                     input=joined,
                     max_output_tokens=max_t,
                     temperature=temperature if temperature is not None else self.config.temperature,
                     reasoning={"effort": getattr(self.config, "model_reasoning_effort", "high") if hasattr(self.config, "model_reasoning_effort") else "high"},
                 )
-                output = response.output_text
+                output = responses_output_text(response)
             else:
-                response = self.client.chat.completions.create(
+                response = self.client.chat_completions(
                     model=model or self.config.model_name,
                     messages=messages,
                     temperature=temperature if temperature is not None else self.config.temperature,
                     max_tokens=max_t
                 )
-                output = response.choices[0].message.content
+                output = message_content(response)
             if getattr(self.config, "llm_call_log", True):
                 cost = time.perf_counter() - started
                 print(f"[LLM] done model={model or self.config.model_name} elapsed={cost:.2f}s")

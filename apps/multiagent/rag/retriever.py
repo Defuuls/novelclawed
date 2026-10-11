@@ -2,9 +2,9 @@
 检索器模块：整合向量数据库和文档处理
 """
 from typing import List, Dict, Optional
-from rag.vector_store import VectorStore
-from rag.document_processor import DocumentProcessor
-from config import Config
+from multiagent.rag.vector_store import VectorStore
+from multiagent.rag.document_processor import DocumentProcessor
+from multiagent.config import Config
 
 
 class Retriever:

@@ -1,29 +1,30 @@
 ﻿"""
 任务执行模块 (Compositive Executor)
 """
+from novelclaw.utils.openai_compat import check_cancelled as _check_cancelled
 from typing import Any, Dict, List, Optional, Tuple
 import math
-from config import Config
+from novelclaw.config import Config
 import json
-from utils.llm_client import LLMClient
-from rag.retriever import Retriever
-from rag.memory_system import MemorySystem
-from rag.consistency_checker import ConsistencyChecker
-from rag.turning_point_tracker import TurningPointTracker
-from rag.realtime_editor import RealtimeEditor
-from workflow.analyzer import Analyzer
-from workflow.organizer import AdaptiveOrganizer
-from workflow.claw_manager import OpenClawManager
-from utils.idea_analyzer import IdeaAnalyzer
-from utils.language_detector import detect_language
-from agents.plot_agent import PlotAgent
-from agents.character_agent import CharacterAgent
-from agents.world_agent import WorldAgent
-from agents.retrieval_agent import RetrievalAgent
-from agents.writer_agent import WriterAgent
-from agents.evaluator_agent import EvaluatorAgent
-from agents.judge_agent import JudgeAgent
-from workflow.reward_system import RewardSystem
+from novelclaw.utils.llm_client import LLMClient
+from novelclaw.rag.retriever import Retriever
+from novelclaw.rag.memory_system import MemorySystem
+from novelclaw.rag.consistency_checker import ConsistencyChecker
+from novelclaw.rag.turning_point_tracker import TurningPointTracker
+from novelclaw.rag.realtime_editor import RealtimeEditor
+from novelclaw.workflow.analyzer import Analyzer
+from novelclaw.workflow.organizer import AdaptiveOrganizer
+from novelclaw.workflow.claw_manager import OpenClawManager
+from novelclaw.utils.idea_analyzer import IdeaAnalyzer
+from novelclaw.utils.language_detector import detect_language
+from novelclaw.agents.plot_agent import PlotAgent
+from novelclaw.agents.character_agent import CharacterAgent
+from novelclaw.agents.world_agent import WorldAgent
+from novelclaw.agents.retrieval_agent import RetrievalAgent
+from novelclaw.agents.writer_agent import WriterAgent
+from novelclaw.agents.evaluator_agent import EvaluatorAgent
+from novelclaw.agents.judge_agent import JudgeAgent
+from novelclaw.workflow.reward_system import RewardSystem
 import re
 
 
@@ -2401,6 +2402,7 @@ Global outline:
         while complete_path.exists():
             if msg_path.exists():
                 break
+            _check_cancelled()  # cooperative cancel for in-process (Android) workers
             time.sleep(0.8)
         print(f"[OpenClaw] Between-chapter wait cleared after chapter {chapter_no}")
 

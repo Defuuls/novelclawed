@@ -4,6 +4,8 @@ import json
 import os
 import queue
 import subprocess
+
+from inprocess_worker import InProcessJob, inprocess_enabled
 import sys
 import threading
 import time
@@ -25,7 +27,7 @@ from .provider_registry import (
     normalize_wire_api,
 )
 from .security import decrypt_api_key
-from capability_registry import default_enabled_capability_slugs, normalize_capability_slugs
+from novelclaw.capability_registry import default_enabled_capability_slugs, normalize_capability_slugs
 from .settings import BASE_DIR, RUNS_DIR, settings
 
 
@@ -334,7 +336,7 @@ def _run_worker_subprocess(
         sys.executable,
         "-u",
         "-m",
-        "local_web_portal.worker_process",
+        "novelclaw.local_web_portal.worker_process",
         "--idea",
         idea,
         "--output-json",
@@ -355,22 +357,31 @@ def _run_worker_subprocess(
     )
     env["RUN_ID"] = run_id
 
-    process = subprocess.Popen(
-        cmd,
-        cwd=str(BASE_DIR.parent),
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        bufsize=1,
-    )
+    if inprocess_enabled():
+        # Android/Chaquopy: no child processes; run the worker in a thread.
+        from novelclaw.local_web_portal.worker_process import run_worker as _run_worker
+
+        process = InProcessJob(lambda: _run_worker(idea=idea, output_json=str(worker_out)), env).start()
+    else:
+        process = subprocess.Popen(
+            cmd,
+            cwd=str(BASE_DIR.parent.parent),
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+        )
     started = time.monotonic()
     last_output_at = started
-    line_queue: "queue.Queue[Optional[str]]" = queue.Queue()
-    reader = threading.Thread(target=_stdout_reader, args=(process.stdout, line_queue), daemon=True)
-    reader.start()
+    if isinstance(process, InProcessJob):
+        line_queue = process.lines
+    else:
+        line_queue: "queue.Queue[Optional[str]]" = queue.Queue()
+        reader = threading.Thread(target=_stdout_reader, args=(process.stdout, line_queue), daemon=True)
+        reader.start()
     stdout_closed = False
 
     _append_worker_log(worker_log, f"[system] worker started pid={process.pid} run_id={run_id}")

@@ -7,9 +7,9 @@ import os
 import sys
 import traceback
 
-from config import Config
-from utils.language_detector import detect_language
-from workflow.executor import CompositiveExecutor
+from novelclaw.config import Config
+from novelclaw.utils.language_detector import detect_language
+from novelclaw.workflow.executor import CompositiveExecutor
 
 
 def _ensure_utf8_stdio() -> None:

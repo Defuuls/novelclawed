@@ -6,8 +6,8 @@ import json
 import os
 import traceback
 
-from config import Config
-from workflow.executor import CompositiveExecutor
+from multiagent.config import Config
+from multiagent.workflow.executor import CompositiveExecutor
 
 
 def main():

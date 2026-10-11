@@ -3,10 +3,10 @@
 用于风格参考和减少幻觉
 """
 from typing import Dict, List, Optional
-from rag.retriever import Retriever
-from rag.vector_store import VectorStore
-from rag.document_processor import DocumentProcessor
-from config import Config
+from multiagent.rag.retriever import Retriever
+from multiagent.rag.vector_store import VectorStore
+from multiagent.rag.document_processor import DocumentProcessor
+from multiagent.config import Config
 import os
 import json
 

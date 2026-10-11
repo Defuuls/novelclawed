@@ -8,7 +8,7 @@ import json
 import os
 import re
 import shutil
-from config import Config
+from novelclaw.config import Config
 
 
 class MemorySystem:
@@ -40,8 +40,8 @@ class MemorySystem:
         self.memory_store = None
         self.document_processor = None
         if self.vector_memory_enabled:
-            from rag.vector_store import VectorStore
-            from rag.document_processor import DocumentProcessor
+            from novelclaw.rag.vector_store import VectorStore
+            from novelclaw.rag.document_processor import DocumentProcessor
             self.memory_store = VectorStore(
                 config,
                 collection_name="memory_collection",

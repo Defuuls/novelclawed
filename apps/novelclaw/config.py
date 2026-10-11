@@ -6,7 +6,7 @@ from dotenv import load_dotenv, dotenv_values
 from typing import Optional
 import os.path
 
-from capability_registry import enabled_capability_slugs_from_env
+from novelclaw.capability_registry import enabled_capability_slugs_from_env
 
 
 def _env_flag(name: str, default: str = "0") -> bool:
